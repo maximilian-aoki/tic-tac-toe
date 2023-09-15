@@ -1,7 +1,5 @@
-import random
-
-# STARTING BOARD
-BOARD = {'1': {'A': " ", 'B': " ", 'C': " "}, '2': {'A': " ", 'B': " ", 'C': " "}, '3': {'A': " ", 'B': " ", 'C': " "}}
+import game_checks
+import comp_moves
 
 
 # WELCOME MESSAGES
@@ -17,28 +15,53 @@ print("The name of the game is to get 3-in-a-row, whether that be horizontal, di
 print("The board is arranged in a grid spanning columns 'A', 'B', and 'C', and rows '1', '2', and '3'.\n")
 
 
-# INITIALIZE DIFFICULTY (come back to this)
-# difficulty = input("You will play as the 'X' symbol. "
-#                    "Would you like to set the difficulty to 'easy', 'hard', or 'impossible': ").lower().strip()
+# INITIALIZE DIFFICULTY AND CHECK INPUT
+def difficulty_input():
+    difficulty = input("You will play as the 'X' symbol. "
+                       "Would you like to set the difficulty to 'easy' or 'impossible': ").lower().strip()
+    if difficulty == "easy" or difficulty == "impossible":
+        return difficulty
+    else:
+        print("Sorry, your input wasn't recognized.")
+        return difficulty_input()
 
-print("Let's begin!\n")
 
+# CHECK 'PLAY AGAIN' INPUT FOR END OF GAME
+def play_again_input():
+    play_again = input("\nWould you like to play again? ('y' for Yes, 'n' for No): ")
+    if play_again == "n":
+        return False
+    elif play_again == "y":
+        return True
+    else:
+        print("Sorry, your input wasn't recognized.")
+        return play_again_input()
 
-# FUNCTIONS!
 
 # INTERNAL BOARD SHOW FUNCTION
 def show_board():
+    print("   (A) (B) (C)")
     for row in board:
-        print(f" {board[row]['A']} | {board[row]['B']} | {board[row]['C']} ")
+        print(f"({row}) {board[row]['A']} | {board[row]['B']} | {board[row]['C']} ")
         if row != '3':
-            print("-----------")
+            print("   -----------")
+
+
+# CHECK PLAYER MOVE
+def check_player_input():
+    move_index = input("\nWhere would you like to place your 'X'? "
+                       "(input the column letter follower by the row number, i.e. 'B2' for center: ").upper().strip()
+    if move_index in ["A1", "A2", "A3", "B1", "B2", "B3", "C1", "C2", "C3"]:
+        return move_index
+    else:
+        print("Sorry, your input wasn't recognized.")
+        return check_player_input()
 
 
 # PLAYER MOVE FUNCTION
 def player_move():
     show_board()
-    move_index = input("\nWhere would you like to place your 'X'? "
-                       "(input the column letter follower by the row number, i.e. 'B2' for center: ").upper().strip()
+    move_index = check_player_input()
     selected_move = board[move_index[1]][move_index[0]]
     if selected_move == " ":
         board[move_index[1]][move_index[0]] = "X"
@@ -47,77 +70,42 @@ def player_move():
         player_move()
 
 
-# EASY COMPUTER MOVE FUNCTION
-def computer_move_easy():
-    all_move_options = []
-    for row in board:
-        for column in board[row]:
-            if board[row][column] == " ":
-                all_move_options.append(f"{column}{row}")
-    move_index = random.choice(all_move_options)
-    board[move_index[1]][move_index[0]] = "O"
-    print(f"Computer has played '{move_index}'\n")
-
-
-# CHECK IF THE MOST RECENT MOVE WAS A WIN
-def is_win():
-    rows_to_check = []
-    cols_to_check = []
-
-    diags_to_check = [
-        board["1"]["A"] + board["2"]["B"] + board["3"]["C"],
-        board["1"]["C"] + board["2"]["B"] + board["3"]["A"]
-    ]
-
-    for row in board:
-        rows_to_check.append(board[row]["A"] + board[row]["B"] + board[row]["C"])
-
-    for column in ["A", "B", "C"]:
-        col_str = ""
-        for row in board:
-            col_str = col_str + board[row][column]
-        cols_to_check.append(col_str)
-
-    combos_to_check = rows_to_check + cols_to_check + diags_to_check
-    if "XXX" in combos_to_check:
-        print("\nCONGRATS, YOU WON! GAME OVER.\n")
-        return True
-    elif "OOO" in combos_to_check:
-        print("\nSORRY, YOU LOST. GAME OVER.\n")
-        return True
-    else:
-        return False
-
-
-# CHECK IF THE MOST RECENT MOVE RESULTED IN A TIE
-def is_tie():
-    full_board = True
-    for row in board:
-        for column in board[row]:
-            if board[row][column] == " ":
-                full_board = False
-    if not full_board:
-        return False
-    else:
-        print("\nTIE! GAME OVER.\n")
-        return True
-
-
-# INITIALIZE THE GAME
-board = BOARD
-
-
 # GAMEPLAY
-while True:
-    player_move()
-    if is_win():
-        break
-    if is_tie():
-        break
-    computer_move_easy()
-    if is_win():
-        break
-    if is_tie():
-        break
+continue_playing = True
+while continue_playing:
+    board = {'1': {'A': " ", 'B': " ", 'C': " "},
+             '2': {'A': " ", 'B': " ", 'C': " "},
+             '3': {'A': " ", 'B': " ", 'C': " "}}
+    move_counter = 1
+    difficulty = difficulty_input()
+    print("Let's begin!\n")
+    if difficulty == "easy":
+        while True:
+            player_move()
+            if game_checks.is_win(board):
+                break
+            if game_checks.is_tie(board):
+                break
+            comp_moves.computer_move_easy(board)
+            if game_checks.is_win(board):
+                break
+            if game_checks.is_tie(board):
+                break
+    elif difficulty == "impossible":
+        while True:
+            comp_moves.computer_move_impossible(board, move_counter)
+            move_counter += 1
+            if game_checks.is_win(board):
+                break
+            if game_checks.is_tie(board):
+                break
+            player_move()
+            if game_checks.is_win(board):
+                break
+            if game_checks.is_tie(board):
+                break
+    show_board()
 
-show_board()
+    continue_playing = play_again_input()
+
+print("Goodbye!")
