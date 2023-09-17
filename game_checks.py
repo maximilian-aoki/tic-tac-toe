@@ -1,4 +1,4 @@
-# CHECK ALL COMBOS
+# CHECK ALL COMBOS AND RETURNS LIST
 def get_combos(board):
     rows_to_check = []
     cols_to_check = []
